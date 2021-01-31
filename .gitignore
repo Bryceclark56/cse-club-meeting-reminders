@@ -8,3 +8,9 @@ local.settings.json
 # Added by cargo
 
 /target
+
+*.exe
+
+__blobstorage__
+__queuestorage__
+__azurite*.json
