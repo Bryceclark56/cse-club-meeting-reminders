@@ -1,0 +1,10 @@
+{
+  "bindings": [
+    {
+      "name": "cseMeetingReminder",
+      "type": "timerTrigger",
+      "direction": "in",
+      "schedule": "0 45 5 * 2-4 3"
+    }
+  ]
+}
