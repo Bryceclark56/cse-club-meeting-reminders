@@ -1,5 +1,6 @@
 use std::fmt::Display;
-use chrono::naive::NaiveDate;
+use chrono::Utc;
+use chrono::Date;
 use hyper::{Body, Method, Request, Uri, Client};
 use hyper_tls::HttpsConnector;
 use serde::Serialize;
@@ -30,7 +31,7 @@ pub struct Webhook {
 }
 
 impl Webhook {
-    pub fn meeting_reminder(meeting_date: &NaiveDate, agenda: &str, webex_link: &str, webex_password: &str, color: i32) -> Webhook {
+    pub fn meeting_reminder(meeting_date: &Date<Utc>, agenda: &str, webex_link: &str, webex_password: &str, color: i32) -> Webhook {
         Webhook {
             embeds: vec![Embed::meeting_reminder(meeting_date, agenda, webex_link, webex_password, color)]
         }
@@ -55,7 +56,7 @@ struct Embed {
 }
 
 impl Embed {
-    fn meeting_reminder(meeting_date: &NaiveDate, agenda: &str, webex_link: &str, webex_password: &str, color: i32) -> Embed {
+    fn meeting_reminder(meeting_date: &Date<Utc>, agenda: &str, webex_link: &str, webex_password: &str, color: i32) -> Embed {
         Embed {
             title: Some(format!("Upcoming Meeting - {}", meeting_date.format("%-m/%-d"))),
             embed_type: EmbedType::Rich.value(),
@@ -141,7 +142,8 @@ struct EmbedField {
 mod tests {
     use std::vec;
 
-    use chrono::naive::NaiveDate;
+    use chrono::{Date, TimeZone, Utc};
+    use chrono::naive::{NaiveDateTime, NaiveDate, NaiveTime};
 
     use crate::constants;
     use super::{Embed, EmbedType, EmbedField, EmbedFooter};
@@ -165,7 +167,7 @@ mod tests {
     #[test]
     fn embed_meeting_reminder_returns_correct_struct() {
         let meeting_date_str: &str = "1/27";
-        let meeting_datetime: NaiveDate = NaiveDate::from_ymd(2021, 1, 27);
+        let meeting_datetime = Utc.ymd(2021, 1, 27);
 
         let fake_agenda = "Unit and Integration Testing!";
         let fake_link = "https://iastate.webex.com/";
