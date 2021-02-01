@@ -1,18 +1,25 @@
 use std::fmt::Display;
 use chrono::naive::NaiveDate;
 use hyper::{Body, Method, Request, Uri, Client};
+use hyper_tls::HttpsConnector;
 use serde::Serialize;
 
+
 pub async fn send_webhook(webhook_url: Uri, webhook: &Webhook) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    println!("Sending webhook to {}", webhook_url);
     let request = Request::builder()
         .method(Method::POST)
         .uri(webhook_url)
         .header("content-type", "application/json")
         .body(Body::from(serde_json::to_string(webhook)?))?;
 
-    let client = Client::new();
+    let https = HttpsConnector::new();
+    let client = Client::builder()
+        .build::<_, hyper::Body>(https);
 
-    client.request(request).await?;
+    let response = client.request(request).await?;
+
+    println!("Reponse status: {}", response.status());
 
     Ok(())
 }
