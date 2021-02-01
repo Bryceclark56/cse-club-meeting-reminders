@@ -142,8 +142,9 @@ struct EmbedField {
 mod tests {
     use std::vec;
 
-    use chrono::{Date, TimeZone, Utc};
-    use chrono::naive::{NaiveDateTime, NaiveDate, NaiveTime};
+    use chrono::{TimeZone, Utc};
+
+    use rand::{Rng, distributions::Alphanumeric};
 
     use crate::constants;
     use super::{Embed, EmbedType, EmbedField, EmbedFooter};
@@ -164,14 +165,22 @@ mod tests {
         }
     }
 
+    fn random_string(length: usize) -> String {
+        rand::thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(length)
+        .map(char::from)
+        .collect()
+    }
+
     #[test]
     fn embed_meeting_reminder_returns_correct_struct() {
         let meeting_date_str: &str = "1/27";
         let meeting_datetime = Utc.ymd(2021, 1, 27);
 
-        let fake_agenda = "Unit and Integration Testing!";
-        let fake_link = "https://iastate.webex.com/";
-        let fake_password = "Password";
+        let fake_agenda = random_string(20);
+        let fake_link = random_string(30);
+        let fake_password = random_string(15);
 
         let expected = Embed {
             title: Some(format!("Upcoming Meeting - {}", meeting_date_str)),
@@ -180,12 +189,12 @@ mod tests {
             fields: Some(vec![
                 EmbedField{
                     name: "Agenda:".to_string(),
-                    value: fake_agenda.to_string(),
+                    value: fake_agenda.clone(),
                     inline: Some(false)
                 },
                 EmbedField{
                     name: "Webex Link:".to_string(),
-                    value: fake_link.to_string(),
+                    value: fake_link.clone(),
                     inline: Some(false)
                 },
                 EmbedField{
@@ -198,10 +207,10 @@ mod tests {
             footer: Some(EmbedFooter{text:"Everyone is welcome to join!".to_string()}),
         };
 
-        let actual = Embed::meeting_reminder(&meeting_datetime, fake_agenda, fake_link, fake_password, constants::EMBED_COLOR);
+        let actual = Embed::meeting_reminder(&meeting_datetime, &fake_agenda, &fake_link, &fake_password, constants::EMBED_COLOR);
         assert_eq!(expected, actual);
 
-        let actual = Embed::meeting_reminder(&meeting_datetime, fake_agenda, fake_link, "new fake password", constants::EMBED_COLOR);
+        let actual = Embed::meeting_reminder(&meeting_datetime, &fake_agenda, &fake_link, &random_string(16), constants::EMBED_COLOR);
         assert_ne!(expected, actual);
     }
 }
