@@ -1,6 +1,6 @@
 /* Accessing the Webex REST API */
 pub mod meeting {
-    use std::str::{FromStr, from_utf8};
+    use std::str::FromStr;
 
     use hyper::body;
     use hyper::{Body, Uri, Client, Request};
@@ -65,23 +65,24 @@ pub mod meeting {
     #[serde(rename_all = "camelCase")]
     enum MeetingType {
         #[serde(rename = "meetingSeries")]
-        meeting_series,
+        MeetingSeries,
 
         #[serde(rename = "scheduledMeeting")]
-        scheduled_meeting,
+        ScheduledMeeting,
 
-        meeting
+        Meeting
     }
 
     #[derive(Debug, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
     enum MeetingState {
-        active,
-        scheduled,
-        ready,
-        lobby,
-        inProgress,
-        ended,
-        missed,
-        expired
+        Active,
+        Scheduled,
+        Ready,
+        Lobby,
+        InProgress,
+        Ended,
+        Missed,
+        Expired
     }
 }

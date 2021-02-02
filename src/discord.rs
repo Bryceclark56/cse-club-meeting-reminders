@@ -86,6 +86,7 @@ impl Embed {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 enum EmbedType {
     Rich, // Only one we actually use for webhooks
