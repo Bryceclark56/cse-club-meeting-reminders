@@ -6,6 +6,21 @@
       "command": "host start",
       "problemMatcher": "$func-watch",
       "isBackground": true
+    },
+    {
+      "label": "cargo run",
+      "type": "shell",
+      "command": "cargo",
+      "args": [
+        "run"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [
+        "$rustc"
+      ]
     }
   ]
 }

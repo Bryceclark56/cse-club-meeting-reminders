@@ -14,7 +14,7 @@
   },
   "customHandler": {
     "description": {
-      "defaultExecutablePath": "target/release/cse_meeting_reminders.exe",
+      "defaultExecutablePath": "cse_meeting_reminders.exe",
       "workingDirectory": "",
       "arguments": []
     }

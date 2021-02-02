@@ -7,11 +7,12 @@ use serde::Serialize;
 
 
 pub async fn send_webhook(webhook_url: Uri, webhook: &Webhook) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    println!("Sending webhook to {}", webhook_url);
+    println!("Sending webhook to Discord");
+
     let request = Request::builder()
         .method(Method::POST)
         .uri(webhook_url)
-        .header("content-type", "application/json")
+        .header(hyper::header::CONTENT_TYPE, "application/json")
         .body(Body::from(serde_json::to_string(webhook)?))?;
 
     let https = HttpsConnector::new();
@@ -20,7 +21,7 @@ pub async fn send_webhook(webhook_url: Uri, webhook: &Webhook) -> Result<(), Box
 
     let response = client.request(request).await?;
 
-    println!("Reponse status: {}", response.status());
+    println!("Reponse: {}", response.status());
 
     Ok(())
 }
@@ -41,6 +42,7 @@ impl Webhook {
 #[derive(Debug, PartialEq, Eq, Serialize)]
 struct Embed {
     title: Option<String>,
+    #[serde(rename = "type")]
     embed_type: String,
     description: Option<String>,
     //url: Option<String>,
@@ -146,7 +148,7 @@ mod tests {
 
     use rand::{Rng, distributions::Alphanumeric};
 
-    use crate::constants;
+    use crate::constant;
     use super::{Embed, EmbedType, EmbedField, EmbedFooter};
 
     #[test]
@@ -203,14 +205,14 @@ mod tests {
                     inline: Some(false)
                 }
             ]),
-            color: Some(constants::EMBED_COLOR),
+            color: Some(constant::EMBED_COLOR),
             footer: Some(EmbedFooter{text:"Everyone is welcome to join!".to_string()}),
         };
 
-        let actual = Embed::meeting_reminder(&meeting_datetime, &fake_agenda, &fake_link, &fake_password, constants::EMBED_COLOR);
+        let actual = Embed::meeting_reminder(&meeting_datetime, &fake_agenda, &fake_link, &fake_password, constant::EMBED_COLOR);
         assert_eq!(expected, actual);
 
-        let actual = Embed::meeting_reminder(&meeting_datetime, &fake_agenda, &fake_link, &random_string(16), constants::EMBED_COLOR);
+        let actual = Embed::meeting_reminder(&meeting_datetime, &fake_agenda, &fake_link, &random_string(16), constant::EMBED_COLOR);
         assert_ne!(expected, actual);
     }
 }

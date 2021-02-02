@@ -2,3 +2,8 @@
 .vscode
 local.settings.json
 test
+target
+README.md
+__blobstorage__
+__queuestorage__
+__azurite*
