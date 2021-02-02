@@ -13,7 +13,7 @@ pub mod meeting {
     pub async fn get(id: &str, password: &str, site_url: &str, auth_token: &str) -> Result<MeetingInfo, Box<dyn std::error::Error + Send + Sync>> {
         println!("Getting data from Webex!");
 
-        let uri = Uri::from_str(&format!("{}{}?siteUrl={}", constant::WEBEX_MEETINGS_API_URL, id, site_url))?;
+        let uri = Uri::from_str(&format!("{}{}?siteUrl={}&current=true", constant::WEBEX_MEETINGS_API_URL, id, site_url))?;
 
         let request = Request::get(uri)
             .header(&AUTHORIZATION, format!("Bearer {}", auth_token))
@@ -31,11 +31,12 @@ pub mod meeting {
 
         let body_vec = body.to_vec();
         let string_body = std::str::from_utf8(&body_vec[..])?;
+        println!("{}", string_body);
 
         Ok(serde_json::from_str(string_body)?)
     }
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, Deserialize)]
     #[serde(rename_all = "camelCase")]
     pub struct MeetingInfo {
         id: String,
