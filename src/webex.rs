@@ -45,7 +45,7 @@ pub mod meeting {
         password: String,
         phone_and_video_system_password: Option<String>,
         meeting_type: MeetingType,
-        timezone: String,
+        pub timezone: String,
         pub start: String, // ISO 8601
         pub end: String, // ISO 8601
         recurrence: String, // RFC 2445

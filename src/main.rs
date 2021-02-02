@@ -5,7 +5,7 @@ use hyper::Uri;
 
 extern crate chrono;
 
-use chrono::{DateTime, Utc};
+use chrono::Local;
 
 mod constant;
 mod discord;
@@ -23,13 +23,13 @@ async fn main() -> Result<(), Box<(dyn std::error::Error + Send + Sync + 'static
     let meeting_info = meeting::get(&meeting_id, &meeting_password, constant::WEBEX_SITE_URL, &webex_token).await?;
 
     let webhook_uri: Uri = env::var("DISCORD_WEBHOOK_URL")?.parse()?;
-    let meeting_date: DateTime<Utc> = meeting_info.start.parse()?;
+    let meeting_date = Local::today();
     let agenda = meeting_info.agenda.unwrap_or_else(|| "none".to_string());
     let webex_link = meeting_info.web_link;
     let webex_password = meeting_password;
     let color = constant::EMBED_COLOR;
 
-    let webhook = discord::Webhook::meeting_reminder(&meeting_date.date(), &agenda, &webex_link, &webex_password, color);
+    let webhook = discord::Webhook::meeting_reminder(&meeting_date, &agenda, &webex_link, &webex_password, color);
 
     discord::send_webhook(webhook_uri, &webhook).await
 }
