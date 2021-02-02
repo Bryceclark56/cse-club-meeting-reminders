@@ -47,7 +47,7 @@ pub mod meeting {
         meeting_type: MeetingType,
         timezone: String,
         pub start: String, // ISO 8601
-        end: String, // ISO 8601
+        pub end: String, // ISO 8601
         recurrence: String, // RFC 2445
         host_user_id: String,
         host_display_name: String,
