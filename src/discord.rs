@@ -1,5 +1,5 @@
 use std::fmt::Display;
-use chrono::{Date, FixedOffset, Local, LocalResult};
+use chrono::{Date, Local};
 use hyper::{Body, Method, Request, Uri, Client};
 use hyper_tls::HttpsConnector;
 use serde::Serialize;
