@@ -36,6 +36,10 @@ pub mod meeting {
         Ok(serde_json::from_str(string_body)?)
     }
 
+    /*async fn refresh_auth_token() {
+        
+    }*/
+
     #[derive(Debug, Deserialize)]
     #[serde(rename_all = "camelCase")]
     pub struct MeetingInfo {
@@ -49,7 +53,7 @@ pub mod meeting {
         pub timezone: String,
         pub start: String, // ISO 8601
         pub end: String, // ISO 8601
-        recurrence: String, // RFC 2445
+        recurrence: Option<String>, // RFC 2445
         host_user_id: String,
         host_display_name: String,
         host_email: String,
