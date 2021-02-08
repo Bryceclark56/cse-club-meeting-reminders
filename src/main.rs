@@ -1,7 +1,7 @@
 use std::env;
 
-extern crate hyper;
-use hyper::Uri;
+use tide::Request;
+use tide::prelude::*;
 
 extern crate chrono;
 
@@ -12,9 +12,25 @@ mod discord;
 mod webex;
 use webex::meeting;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<(dyn std::error::Error + Send + Sync + 'static)>>{
-    println!("Running meeting reminder");
+#[async_std::main]
+async fn main() -> tide::Result<()>{
+    println!("Starting handler!");
+
+    let listen_url = format!("127.0.0.1:{}", env::var("FUNCTIONS_HTTPWORKER_PORT")?);
+    let mut handler = tide::new();
+
+    handler.at("/cse-meeting-reminder").post(|_| async {
+        send_reminder().await; // We should check the error
+        Ok(json!({}))
+    });
+
+    handler.listen(listen_url).await?;
+    println!("Closing handler");
+    Ok(())
+}
+
+async fn send_reminder() -> Result<(), Box<(dyn std::error::Error + Send + Sync)>> {
+    println!("======Running meeting reminder======");
 
     let meeting_id = env::var("WEBEX_MEETING_ID")?;
     let meeting_password = env::var("WEBEX_MEETING_PASSWORD")?;
@@ -31,5 +47,9 @@ async fn main() -> Result<(), Box<(dyn std::error::Error + Send + Sync + 'static
 
     let webhook = discord::Webhook::meeting_reminder(&meeting_date, &agenda, &webex_link, &webex_password, color);
 
-    discord::send_webhook(webhook_uri, &webhook).await
+    discord::send_webhook(webhook_uri, &webhook).await?;
+
+    println!("======Finished======");
+
+    Ok(())
 }
