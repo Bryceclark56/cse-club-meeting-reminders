@@ -1,40 +1,41 @@
-use std::fmt::Display;
 use chrono::{Date, Local};
-use hyper::{Body, Method, Request, Uri, Client};
-use hyper_tls::HttpsConnector;
 use serde::Serialize;
-
-
-pub async fn send_webhook(webhook_url: Uri, webhook: &Webhook) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    println!("Sending webhook to Discord");
-
-    let request = Request::builder()
-        .method(Method::POST)
-        .uri(webhook_url)
-        .header(hyper::header::CONTENT_TYPE, "application/json")
-        .body(Body::from(serde_json::to_string(webhook)?))?;
-
-    let https = HttpsConnector::new();
-    let client = Client::builder()
-        .build::<_, hyper::Body>(https);
-
-    let response = client.request(request).await?;
-
-    println!("Reponse: {}", response.status());
-
-    Ok(())
-}
+use std::fmt::Display;
+use surf;
 
 #[derive(Serialize)]
 pub struct Webhook {
-    embeds: Vec<Embed> // We only use this field for now
+    embeds: Vec<Embed>, // We only use this field for now
 }
 
 impl Webhook {
-    pub fn meeting_reminder(meeting_date: &Date<Local>, agenda: &str, webex_link: &str, webex_password: &str, color: i32) -> Webhook {
+    pub fn meeting_reminder(
+        meeting_date: &Date<Local>,
+        agenda: &str,
+        webex_link: &str,
+        webex_password: &str,
+        color: i32,
+    ) -> Webhook {
         Webhook {
-            embeds: vec![Embed::meeting_reminder(meeting_date, agenda, webex_link, webex_password, color)]
+            embeds: vec![Embed::meeting_reminder(
+                meeting_date,
+                agenda,
+                webex_link,
+                webex_password,
+                color,
+            )],
         }
+    }
+
+    pub async fn send(&self, webhook_url: &str) -> surf::Result<()> {
+        println!("Sending webhook to Discord");
+
+        let response = surf::post(webhook_url)
+            .body(surf::Body::from_json(self)?)
+            .await?;
+        println!("Response status: {}", response.status());
+
+        Ok(())
     }
 }
 
@@ -53,34 +54,47 @@ struct Embed {
     //video: Option<EmbedVideo>,
     //provider: Option<EmbedProvider>,
     //author: Option<EmbedAuthor>,
-    fields: Option<Vec<EmbedField>>
+    fields: Option<Vec<EmbedField>>,
 }
 
 impl Embed {
-    fn meeting_reminder(meeting_date: &Date<Local>, agenda: &str, webex_link: &str, webex_password: &str, color: i32) -> Embed {
+    fn meeting_reminder(
+        meeting_date: &Date<Local>,
+        agenda: &str,
+        webex_link: &str,
+        webex_password: &str,
+        color: i32,
+    ) -> Embed {
         Embed {
-            title: Some(format!("Upcoming Meeting - {}", meeting_date.format("%-m/%-d"))),
+            title: Some(format!(
+                "Upcoming Meeting - {}",
+                meeting_date.format("%-m/%-d")
+            )),
             embed_type: EmbedType::Rich.value(),
-            description: Some(String::from("CSE Club weekly meeting starting in 15 minutes!")),
+            description: Some(String::from(
+                "CSE Club weekly meeting starting in 15 minutes!",
+            )),
             fields: Some(vec![
-                EmbedField{
+                EmbedField {
                     name: String::from("Agenda:"),
                     value: agenda.to_string(),
-                    inline: Some(false)
+                    inline: Some(false),
                 },
-                EmbedField{
+                EmbedField {
                     name: String::from("Webex Link:"),
                     value: webex_link.to_string(),
-                    inline: Some(false)
+                    inline: Some(false),
                 },
-                EmbedField{
+                EmbedField {
                     name: String::from("Password:"),
                     value: webex_password.to_string(),
-                    inline: Some(false)
-                }
+                    inline: Some(false),
+                },
             ]),
             color: Some(color),
-            footer: Some(EmbedFooter{text:String::from("Everyone is welcome to join!")}),
+            footer: Some(EmbedFooter {
+                text: String::from("Everyone is welcome to join!"),
+            }),
         }
     }
 }
@@ -93,7 +107,7 @@ enum EmbedType {
     Video,
     Gif,
     Article,
-    Link
+    Link,
 }
 
 impl EmbedType {
@@ -110,7 +124,7 @@ impl Display for EmbedType {
 
 #[derive(Debug, PartialEq, Eq, Serialize)]
 struct EmbedFooter {
-    text: String
+    text: String,
 }
 
 /*struct EmbedImage {
@@ -137,7 +151,7 @@ struct EmbedAuthor {
 struct EmbedField {
     name: String,
     value: String,
-    inline: Option<bool>
+    inline: Option<bool>,
 }
 
 #[cfg(test)]
@@ -146,10 +160,10 @@ mod tests {
 
     use chrono::{Local, TimeZone};
 
-    use rand::{Rng, distributions::Alphanumeric};
+    use rand::{distributions::Alphanumeric, Rng};
 
+    use super::{Embed, EmbedField, EmbedFooter, EmbedType};
     use crate::constant;
-    use super::{Embed, EmbedType, EmbedField, EmbedFooter};
 
     #[test]
     fn embed_type_value_is_lowercase_name() {
@@ -159,20 +173,23 @@ mod tests {
             (EmbedType::Video.value(), "video"),
             (EmbedType::Gif.value(), "gif"),
             (EmbedType::Article.value(), "article"),
-            (EmbedType::Link.value(), "link")
+            (EmbedType::Link.value(), "link"),
         ];
 
         for (actual, expected) in eapairs {
-            assert_eq!(actual, expected, "Should return lowercase version of enum name.");
+            assert_eq!(
+                actual, expected,
+                "Should return lowercase version of enum name."
+            );
         }
     }
 
     fn random_string(length: usize) -> String {
         rand::thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(length)
-        .map(char::from)
-        .collect()
+            .sample_iter(&Alphanumeric)
+            .take(length)
+            .map(char::from)
+            .collect()
     }
 
     #[test]
@@ -189,30 +206,44 @@ mod tests {
             embed_type: EmbedType::Rich.value(),
             description: Some("CSE Club weekly meeting starting in 15 minutes!".to_string()),
             fields: Some(vec![
-                EmbedField{
+                EmbedField {
                     name: "Agenda:".to_string(),
                     value: fake_agenda.clone(),
-                    inline: Some(false)
+                    inline: Some(false),
                 },
-                EmbedField{
+                EmbedField {
                     name: "Webex Link:".to_string(),
                     value: fake_link.clone(),
-                    inline: Some(false)
+                    inline: Some(false),
                 },
-                EmbedField{
+                EmbedField {
                     name: "Password:".to_string(),
                     value: fake_password.to_string(),
-                    inline: Some(false)
-                }
+                    inline: Some(false),
+                },
             ]),
             color: Some(constant::EMBED_COLOR),
-            footer: Some(EmbedFooter{text:"Everyone is welcome to join!".to_string()}),
+            footer: Some(EmbedFooter {
+                text: "Everyone is welcome to join!".to_string(),
+            }),
         };
 
-        let actual = Embed::meeting_reminder(&meeting_datetime, &fake_agenda, &fake_link, &fake_password, constant::EMBED_COLOR);
+        let actual = Embed::meeting_reminder(
+            &meeting_datetime,
+            &fake_agenda,
+            &fake_link,
+            &fake_password,
+            constant::EMBED_COLOR,
+        );
         assert_eq!(expected, actual);
 
-        let actual = Embed::meeting_reminder(&meeting_datetime, &fake_agenda, &fake_link, &random_string(16), constant::EMBED_COLOR);
+        let actual = Embed::meeting_reminder(
+            &meeting_datetime,
+            &fake_agenda,
+            &fake_link,
+            &random_string(16),
+            constant::EMBED_COLOR,
+        );
         assert_ne!(expected, actual);
 
         Ok(())
