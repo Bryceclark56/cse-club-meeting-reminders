@@ -44,18 +44,14 @@ async fn send_reminder() -> tide::Result<()> {
     .await?;
 
     let meeting_date = Local::today();
-    let agenda = meeting_info.agenda.unwrap_or_else(|| "None".to_string());
+    let agenda = meeting_info.agenda.unwrap_or_else(|| String::from("None"));
     let webex_link = meeting_info.web_link;
     let webex_password = meeting_password;
     let color = constant::EMBED_COLOR;
 
-    discord::Webhook::meeting_reminder(
-        &meeting_date,
-        &agenda,
-        &webex_link,
-        &webex_password,
-        color,
-    ).send(&webhook_uri).await?;
+    discord::Webhook::meeting_reminder(&meeting_date, &agenda, &webex_link, &webex_password, color)
+        .send(&webhook_uri)
+        .await?;
 
     println!("======Finished======");
 

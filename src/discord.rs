@@ -1,7 +1,6 @@
 use chrono::{Date, Local};
 use serde::Serialize;
 use std::fmt::Display;
-use surf;
 
 #[derive(Serialize)]
 pub struct Webhook {
