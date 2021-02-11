@@ -13,6 +13,7 @@ mod webex;
 #[async_std::main]
 async fn main() -> tide::Result<()> {
     println!("Starting handler!");
+    get_func_env_vars()?; // Tests to ensure they exist at runtime
 
     let listen_url = format!("127.0.0.1:{}", env::var("FUNCTIONS_HTTPWORKER_PORT")?);
     let mut handler = tide::new();
@@ -21,19 +22,16 @@ async fn main() -> tide::Result<()> {
         send_reminder().await?;
         Ok(json!({}))
     });
-
     handler.listen(listen_url).await?;
+
     println!("Closing handler");
     Ok(())
 }
 
 async fn send_reminder() -> tide::Result<()> {
-    println!("======Running meeting reminder======");
+    println!("===Running meeting reminder===");
 
-    let meeting_id = env::var("WEBEX_MEETING_ID")?;
-    let meeting_password = env::var("WEBEX_MEETING_PASSWORD")?;
-    let webex_token = env::var("WEBEX_AUTH_TOKEN")?;
-    let webhook_uri = env::var("DISCORD_WEBHOOK_URL")?;
+    let (meeting_id, meeting_password, webex_token, webhook_uri) = get_func_env_vars()?;
 
     let meeting_info = webex::meeting::get(
         &meeting_id,
@@ -53,7 +51,18 @@ async fn send_reminder() -> tide::Result<()> {
         .send(&webhook_uri)
         .await?;
 
-    println!("======Finished======");
+    println!("===========Finished===========");
 
     Ok(())
+}
+
+// Retrieves the environment variables used in
+// send_reminder()
+fn get_func_env_vars() -> Result<(String, String, String, String), env::VarError> {
+    Ok((
+        env::var("WEBEX_MEETING_ID")?,
+        env::var("WEBEX_MEETING_PASSWORD")?,
+        env::var("WEBEX_AUTH_TOKEN")?,
+        env::var("DISCORD_WEBHOOK_URL")?,
+    ))
 }
