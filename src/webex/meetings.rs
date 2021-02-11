@@ -28,10 +28,6 @@ pub async fn get(
     Ok(response.body_json().await?)
 }
 
-/*async fn refresh_auth_token() {
-
-}*/
-
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MeetingInfo {

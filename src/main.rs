@@ -33,7 +33,7 @@ async fn send_reminder() -> tide::Result<()> {
 
     let (meeting_id, meeting_password, webex_token, webhook_uri) = get_func_env_vars()?;
 
-    let meeting_info = webex::meeting::get(
+    let meeting_info = webex::meetings::get(
         &meeting_id,
         &meeting_password,
         constant::WEBEX_SITE_URL,
